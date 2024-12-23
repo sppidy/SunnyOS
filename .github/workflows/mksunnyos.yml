@@ -1,0 +1,40 @@
+name: Build SunnyOS with GNOME ISO
+
+on:
+  push:
+    branches:
+      - sunnyos_gnome
+  pull_request:
+    branches:
+      - sunnyos_gnome
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Set up build Enviroment
+        uses: crazy-max/ghaction-docker-buildx@v6
+        with:
+          build-args: |
+            --platform linux/amd64
+          tags: |
+            archlinux:latest
+
+      - name: Install dependencies
+        run: |
+          sudo pacman -Sy --noconfirm archiso
+
+      - name: Build SunnyOS ISO
+        run: |
+          sudo mkarchiso -v -w /tmp/work -o /tmp/out .
+
+      - name: Upload ISO artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: sunnyos-iso
+          path: /tmp/out/*.iso
